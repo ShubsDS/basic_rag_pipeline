@@ -1,10 +1,12 @@
 from openai import OpenAI
 import chromadb
+from sentence_transformers import SentenceTransformer
 
 with open('api-key.txt') as f:
     key = f.read()
 
 client = OpenAI(api_key=key)
+model = SentenceTransformer('all-MiniLM-L6-v2')
 
 
 chroma_client = chromadb.PersistentClient()
@@ -12,21 +14,20 @@ chroma_client = chromadb.PersistentClient()
 # Create or get a collection in ChromaDB
 collection_name = "basic_collection"
 
-collection = chroma_client.get_or_create_collection(name = collection_name)
-
-def get_embedding(text, model="text-embedding-3-small"):
-   text = text.replace("\n", " ")
-   return client.embeddings.create(input = [text], model=model).data[0].embedding
+collection = chroma_client.get_collection(name = collection_name)
+# def get_embedding(text, model="text-embedding-3-small"):
+#    text = text.replace("\n", " ")
+#    return client.embeddings.create(input = [text], model=model).data[0].embedding
 
 query = input("Enter your query: ")
-
-query_embedding = get_embedding(query)
+query = query.replace("\n", " ")
+query_embedding = model.encode([query])
 
 k = 1
 
 # Search for similar documents
 results = collection.query(
-    query_embeddings=[query_embedding],
+    query_embeddings=query_embedding.tolist(),
     n_results=k
 )
 
