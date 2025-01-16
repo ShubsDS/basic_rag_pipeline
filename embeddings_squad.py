@@ -25,13 +25,19 @@ model = SentenceTransformer('all-MiniLM-L6-v2')
 questions = [item['question'] for item in dataset]
 contexts = [item['context'] for item in dataset]
 
-question_embeddings = model.encode(questions, convert_to_tensor=True)
-context_embeddings = model.encode(contexts, convert_to_tensor=True)
+print(len(contexts))
+
+
+context_embeddings = []
+for index, context in enumerate(contexts):
+    embedding = model.encode(context)
+    context_embeddings.append(embedding)
+    if(index % 1000 == 0):
+        print(index, "passed")
 
 
 chroma_client = chromadb.PersistentClient()
 collection_name = "squad_collection"
-
 collection = chroma_client.get_or_create_collection(name = collection_name)
 
 
